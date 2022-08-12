@@ -146,6 +146,7 @@ $string['managetemplates'] = 'Manage certificate templates';
 $string['mappingerrorcertificateheader'] = 'Some certificate templates do not exist';
 $string['mappingerrorcertificatelog'] = 'Certificate {$a} was not found';
 $string['messageprovider:certificateissued'] = 'Certificate received';
+$string['messageprovider:certificateabouttoexpire'] = 'Certificate expiry notifications';
 $string['milimeter'] = 'mm';
 $string['mycertificates'] = 'My certificates';
 $string['mycertificatesdescription'] = 'These are the certificates you have been issued by either email or downloading manually.';
