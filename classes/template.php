@@ -852,12 +852,13 @@ class template {
         $userfullname = fullname($user, true);
         $expriydate = userdate($issue->expires);
         $mycertificatesurl = new moodle_url('/admin/tool/certificate/my.php');
-        $subject = get_string('notificationsubjectcertificateabouttoexpire', 'tool_certificate');
+        $subject = get_string('notificationsubjectcertificateabouttoexpire', 'tool_certificate',
+        ['coursefullname' => $DB->get_field('course', 'fullname', ['id' => $coursecertificate->course])]);
         $fullmessage = get_string(
             'notificationmsgcertificateabouttoexpire',
             'tool_certificate',
-            ['fullname' => $userfullname, 'url' => $mycertificatesurl->out(false), 'expires' => $expriydate]
-            );
+            ['fullname' => $userfullname, 'url' => $mycertificatesurl->out(false), 'expires' => $expriydate,
+            'coursefullname' => $DB->get_field('course', 'fullname', ['id' => $coursecertificate->course])]);
         $fullmessage .= $coursecertificate->expirynotificationmessage;
         $message = new message();
         $message->courseid = $issue->courseid ?? SITEID;
@@ -873,6 +874,8 @@ class template {
         $message->fullmessagehtml = $fullmessage;
         $message->fullmessageformat = FORMAT_HTML;
         $message->smallmessage = '';
+        $message->attachment = $file;
+        $message->attachname = $file->get_filename();
 
         if (message_send($message)) {
             $DB->set_field('tool_certificate_issues', 'expirynotifsent', 1, ['id' => $issue->id]);
