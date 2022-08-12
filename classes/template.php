@@ -716,6 +716,20 @@ class template {
 
         return $issue->id;
     }
+
+    /**
+     * Send expiry notification.
+     *
+     * @param \stdClass $issue
+     * @param \stdClass $coursecertificate
+     * @return bool
+     */
+    public function expire_certificate_notification(\stdClass $issue, \stdClass $coursecertificate) {
+        // Get the issue file and send notification.
+        $file = $this->get_issue_file($issue);
+        self::send_expiry_notification($issue, $file);
+        // Trigger event.
+    }
     /**
      * Creates stored file for an issue.
      *
@@ -825,6 +839,48 @@ class template {
     }
 
     /**
+     * Sends a moodle notification of the certificate that is about to expire.
+     *
+     * @param \stdClass $issue
+     * @param \stored_file $file
+     */
+    private function send_expiry_notification(\stdClass $issue, \stored_file $file): void {
+        global $DB;
+        $user = core_user::get_user($issue->userid);
+        $userfullname = fullname($user, true);
+        $expriydate = userdate($issue->expires);
+        $mycertificatesurl = new moodle_url('/admin/tool/certificate/my.php');
+        $subject = get_string('notificationsubjectcertificateabouttoexpire', 'tool_certificate');
+        $fullmessage = get_string(
+            'notificationmsgcertificateabouttoexpire',
+            'tool_certificate',
+            ['fullname' => $userfullname, 'url' => $mycertificatesurl->out(false), 'expires' => $expriydate]
+            );
+        $fullmessage .= "...Add...";
+        $message = new message();
+        $message->courseid = $issue->courseid ?? SITEID;
+        $message->component = 'tool_certificate';
+        $message->name = 'certificateissued';
+        $message->notification = 1;
+        $message->userfrom = core_user::get_noreply_user();
+        $message->userto = $user;
+        $message->subject = $subject;
+        $message->contexturl = $mycertificatesurl;
+        $message->contexturlname = get_string('mycertificates', 'tool_certificate');
+        $message->fullmessage = html_to_text($fullmessage);
+        $message->fullmessagehtml = $fullmessage;
+        $message->fullmessageformat = FORMAT_HTML;
+        $message->smallmessage = '';
+
+        if (message_send($message)) {
+            echo "message was sent";
+            if (message_send($message)) {
+                $DB->set_field('tool_certificate_issues', 'expirynotifsent', 1, ['id' => $issue->id]);
+            }
+        }
+    }
+
+    /**
      * Deletes an issue of a certificate for a user.
      *
      * @param int $issueid
@@ -870,13 +926,13 @@ class template {
         global $DB;
 
         list($sql, $params) = self::get_visible_categories_contexts_sql();
-        $sql = "SELECT tct.id, tct.name
+        $sql ="SELECT tct.id, tct.name
                   FROM {tool_certificate_templates} tct
                   JOIN {context} ctx
-                    ON ctx.id = tct.contextid AND " . $sql .
+                  ON ctx.id = tct.contextid AND " . $sql .
             " ORDER BY tct.name";
 
-        $templates = $DB->get_records_sql($sql, $params);
+            $templates = $DB->get_records_sql($sql, $params);
 
         $list = [];
         foreach ($templates as $t) {

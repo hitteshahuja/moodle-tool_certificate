@@ -237,6 +237,7 @@ function xmldb_tool_certificate_upgrade($oldversion) {
         if (!$dbman->field_exists($table, $field)) {
             $dbman->add_field($table, $field);
         }
+        $field = new xmldb_field('expirynotifsent', XMLDB_TYPE_INTEGER, '1', null, XMLDB_NOTNULL, null, '0', 'courseid');
 
         // Certificate savepoint reached.
         upgrade_plugin_savepoint(true, 2022031611, 'tool', 'certificate');
