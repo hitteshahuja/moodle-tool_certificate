@@ -394,11 +394,11 @@ class certificate {
                     ON t.id = ci.templateid
                  WHERE ci.code = :code";
 
-        if ($issue = $DB->get_record_sql($sql, $conditions)) {
-            $result->success = true;
-            $result->issue = $issue;
-            \tool_certificate\event\certificate_verified::create_from_issue($issue)->trigger();
-        }
+    if ($issue = $DB->get_record_sql($sql, $conditions)) {
+        $result->success = true;
+        $result->issue = $issue;
+        \tool_certificate\event\certificate_verified::create_from_issue($issue)->trigger();
+    }
         return $result;
     }
 
@@ -628,6 +628,38 @@ class certificate {
     }
 
     /**
+     * Add certificate expiration reminder element to a MoodleQuickForm.
+     *
+     * @param MoodleQuickForm $mform
+     *            form the elements are added to
+     */
+    public static function add_expiry_reminder_notification_elements_to_form(MoodleQuickForm &$mform): void {
+        $group = [];
+        $group[] =&$mform->createElement('static', 'beforeexpirynotification', 'Before');
+        $group[] =&$mform->createElement('duration', 'expirynotificationdateoffset', null,
+        ['defaulunit' => DAYSECS,
+            'units' => [
+                DAYSECS,
+                WEEKSECS
+            ],
+            'optional' => true
+        ]);
+        $mform->addGroup($group, 'expirynotificationdateoffsetgroup', get_string('expirydateremindernotification', 'tool_certificate'), get_string('before', 'tool_certificate'),
+        false);
+        $mform->hideIf('expirynotificationdateoffsetgroup', 'expirydatetype', 'eq', self::DATE_EXPIRATION_NEVER);
+        $mform->disabledIf('expirynotificationdateoffsetgroup', 'expirynotificationdateoffset[enabled]', 'notchecked');
+        $group = [];
+        $group[] =& $mform->createElement('editor', 'expirynotificationmessage_editor',
+        get_string('expirynotificationmessage', 'tool_certificate'), null, array('maxfiles' => 1,
+            'trusttext' => true));
+        $mform->addGroup($group, 'expirydatenotificationgroup', get_string('expirynotificationmessage', 'tool_certificate'), ' ',
+        false);
+        $mform->setType('expirynotificationmessage_editor', PARAM_RAW);
+        $mform->hideIf('expirydatenotificationgroup', 'expirydatetype', 'eq', self::DATE_EXPIRATION_NEVER);
+        $mform->hideIf('expirydatenotificationgroup', 'expirynotificationdateoffset[enabled]', 'notchecked');
+    }
+
+    /**
      * Calculates certificate expiry date.
      *
      * @param int $datetype DATE_NEVER|DATE_ABSOLUTE|DATE_AFTER
@@ -657,5 +689,37 @@ class certificate {
                 throw new coding_exception('unexpected expiry date type');
         }
         return $expirydate;
+    }
+
+    /**
+     * Calculates certificate expiry notification reminder date.
+     *
+     * @param int $datetype DATE_NEVER|DATE_ABSOLUTE|DATE_AFTER
+     * @param int|null $expirydate timestamp for date when certification exprires
+     * @param int|null $duration in seconds for datetype DATE_ATFER
+     * @return int expiry date timestamp
+     * @throws coding_exception
+     */
+    public static function calculate_expiry_notification_date(int $datetype, ?int $expirydate, ?int $expirydateoffset = null ): int {
+        switch ($datetype) {
+            case self::DATE_EXPIRATION_NEVER:
+                $expirynotificationdate = 0;
+                break;
+            case self::DATE_EXPIRATION_ABSOLUTE:
+                if ($expirydate === null) {
+                    throw new coding_exception('absolutedate parameter expected but not found');
+                }
+                $expirynotificationdate = $expirydate - $expirydateoffset ;
+                break;
+            case self::DATE_EXPIRATION_AFTER:
+                if ($expirydate === null) {
+                    throw new coding_exception('duration parameter expected but not found');
+                }
+                $expirynotificationdate = $expirydate - $expirydateoffset;
+                break;
+            default:
+                throw new coding_exception('unexpected expiry date type');
+        }
+        return $expirynotificationdate;
     }
 }
