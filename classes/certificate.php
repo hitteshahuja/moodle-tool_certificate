@@ -385,7 +385,7 @@ class certificate {
         $conditions = ['code' => $code];
 
         $sql = "SELECT ci.id, ci.templateid, ci.code, ci.emailed, ci.timecreated,
-                       ci.expires, ci.data, ci.component, ci.courseid,
+                       ci.expires, ci.expirynotifsent, ci.data, ci.component, ci.courseid,
                        ci.userid, ci.archived,
                        t.name as certificatename,
                        t.contextid
