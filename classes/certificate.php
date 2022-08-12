@@ -630,8 +630,7 @@ class certificate {
     /**
      * Add certificate expiration reminder element to a MoodleQuickForm.
      *
-     * @param MoodleQuickForm $mform
-     *            form the elements are added to
+     * @param MoodleQuickForm $mform form the elements are added to
      */
     public static function add_expiry_reminder_notification_elements_to_form(MoodleQuickForm &$mform): void {
         $group = [];
