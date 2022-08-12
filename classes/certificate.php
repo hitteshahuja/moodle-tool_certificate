@@ -695,7 +695,7 @@ class certificate {
      *
      * @param int $datetype DATE_NEVER|DATE_ABSOLUTE|DATE_AFTER
      * @param int|null $expirydate timestamp for date when certification exprires
-     * @param int|null $duration in seconds for datetype DATE_ATFER
+     * @param int|null $expirydateoffset in seconds for datetype DATE_ATFER
      * @return int expiry date timestamp
      * @throws coding_exception
      */
