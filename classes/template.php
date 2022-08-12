@@ -690,6 +690,7 @@ class template {
         $issue->templateid = $this->get_id();
         $issue->code = \tool_certificate\certificate::generate_code($issue->userid);
         $issue->emailed = 0;
+        $issue->expirynotifsent = 0;
         $issue->timecreated = time();
         $issue->expires = $expires;
         $issue->component = $component;

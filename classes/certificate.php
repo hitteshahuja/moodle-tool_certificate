@@ -643,8 +643,8 @@ class certificate {
             ],
             'optional' => true
         ]);
-        $mform->addGroup($group, 'expirynotificationdateoffsetgroup', get_string('expirydateremindernotification', 'tool_certificate'), get_string('before', 'tool_certificate'),
-        false);
+        $mform->addGroup($group, 'expirynotificationdateoffsetgroup', get_string('expirydateremindernotification', 'tool_certificate'),
+        get_string('before', 'tool_certificate'), false);
         $mform->hideIf('expirynotificationdateoffsetgroup', 'expirydatetype', 'eq', self::DATE_EXPIRATION_NEVER);
         $mform->disabledIf('expirynotificationdateoffsetgroup', 'expirynotificationdateoffset[enabled]', 'notchecked');
         $group = [];
@@ -699,7 +699,8 @@ class certificate {
      * @return int expiry date timestamp
      * @throws coding_exception
      */
-    public static function calculate_expiry_notification_date(int $datetype, ?int $expirydate, ?int $expirydateoffset = null ): int {
+    public static function calculate_expiry_notification_date(int $datetype, ?int $expirydate = null,
+    ?int $expirydateoffset = null ): int {
         switch ($datetype) {
             case self::DATE_EXPIRATION_NEVER:
                 $expirynotificationdate = 0;
@@ -708,7 +709,7 @@ class certificate {
                 if ($expirydate === null) {
                     throw new coding_exception('absolutedate parameter expected but not found');
                 }
-                $expirynotificationdate = $expirydate - $expirydateoffset ;
+                $expirynotificationdate = $expirydate - $expirydateoffset;
                 break;
             case self::DATE_EXPIRATION_AFTER:
                 if ($expirydate === null) {
