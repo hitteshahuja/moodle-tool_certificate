@@ -728,7 +728,7 @@ class template {
     public function expire_certificate_notification(\stdClass $issue, \stdClass $coursecertificate) {
         // Get the issue file and send notification.
         $file = $this->get_issue_file($issue);
-        self::send_expiry_notification($issue, $file);
+        self::send_expiry_notification($issue, $file, $coursecertificate);
         // Trigger event.
     }
     /**
@@ -844,8 +844,9 @@ class template {
      *
      * @param \stdClass $issue
      * @param \stored_file $file
+     * @param \stdClass $coursecertificate
      */
-    private function send_expiry_notification(\stdClass $issue, \stored_file $file): void {
+    private function send_expiry_notification(\stdClass $issue, \stored_file $file, \stdClass $coursecertificate): bool {
         global $DB;
         $user = core_user::get_user($issue->userid);
         $userfullname = fullname($user, true);
@@ -857,7 +858,7 @@ class template {
             'tool_certificate',
             ['fullname' => $userfullname, 'url' => $mycertificatesurl->out(false), 'expires' => $expriydate]
             );
-        $fullmessage .= "...Add...";
+        $fullmessage .= $coursecertificate->expirynotificationmessage;
         $message = new message();
         $message->courseid = $issue->courseid ?? SITEID;
         $message->component = 'tool_certificate';
@@ -874,10 +875,8 @@ class template {
         $message->smallmessage = '';
 
         if (message_send($message)) {
-            echo "message was sent";
-            if (message_send($message)) {
-                $DB->set_field('tool_certificate_issues', 'expirynotifsent', 1, ['id' => $issue->id]);
-            }
+            $DB->set_field('tool_certificate_issues', 'expirynotifsent', 1, ['id' => $issue->id]);
+            return true;
         }
     }
 
