@@ -728,8 +728,7 @@ class template {
     public function expire_certificate_notification(\stdClass $issue, \stdClass $coursecertificate) {
         // Get the issue file and send notification.
         $file = $this->get_issue_file($issue);
-        self::send_expiry_notification($issue, $file, $coursecertificate);
-        // Trigger event.
+        return self::send_expiry_notification($issue, $file, $coursecertificate);
     }
     /**
      * Creates stored file for an issue.
@@ -879,6 +878,7 @@ class template {
 
         if (message_send($message)) {
             $DB->set_field('tool_certificate_issues', 'expirynotifsent', 1, ['id' => $issue->id]);
+            echo "returning true...";
             return true;
         }
     }
